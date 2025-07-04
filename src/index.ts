@@ -4,7 +4,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { Env } from "./types";
-import { getLiveMatches } from "./db";
+import { getLiveMatches, getGlobalRanking } from "./db";
 import { fetchFaceitUser, fetchMatchCrosshairs } from "./faceitApi";
 import { runCron } from "./cron";
 import type { Context } from "hono";
@@ -29,6 +29,12 @@ app.get("/faceit/crosshairs/:matchId", async (c: Context) => {
   } catch (err: any) {
     return c.json({ error: (err as Error).message || "Unable to fetch crosshairs" }, 500);
   }
+});
+
+// GET /faceit/ranking
+app.get("/faceit/ranking", async (c: Context) => {
+  const data = await getGlobalRanking(c.env.DB);
+  return c.json(data);
 });
 
 // GET /faceit/:nickname

@@ -1,6 +1,6 @@
 import { Env } from "./types";
-import { fetchFilteredLiveMatches } from "./faceitApi";
-import { storeMatches } from "./db";
+import { fetchFilteredLiveMatches, fetchGlobalRanking } from "./faceitApi";
+import { storeMatches, storeRanking } from "./db";
 
 export async function runCron(env: Env): Promise<void> {
   console.log("[cron] Starting Faceit live match sync…");
@@ -14,6 +14,15 @@ export async function runCron(env: Env): Promise<void> {
     const matches = await fetchFilteredLiveMatches(env.FACEIT_COOKIE);
     await storeMatches(env.DB, matches);
     console.log(`[cron] Updated ${matches.length} matches in D1.`);
+
+    // Fetch and store top 500 ranking
+    try {
+      const ranking = await fetchGlobalRanking(500);
+      await storeRanking(env.DB, ranking);
+      console.log(`[cron] Cached top ${ranking.length} ranking entries.`);
+    } catch (err) {
+      console.error("[cron] Failed to sync ranking:", err);
+    }
 
     // Broadcast to all WebSocket clients via Durable Object
     try {

@@ -2,8 +2,36 @@ import { Match, PlayerCrosshair, Player } from "./types";
 
 const FACEIT_ENTITY_ID = "73557c8e-4b67-4ac8-bae0-e910b49a5fa0"; // cs2 sa entity id
 const LIVE_MATCH_API_URL = "https://www.faceit.com/api/match/v3/match";
-const MATCH_RESULT_API_URL_BASE = "https://www.faceit.com/api/match/v2/match/";
+const MATCH_RESULT_API_URL_BASE= "https://www.faceit.com/api/match/v2/match/";
 const LIMIT_PER_PAGE = 100; // max limit for faceit api
+const GLOBAL_RANKING_API_URL_BASE ="https://www.faceit.com/api/ranking/v1/globalranking/cs2/SA";
+
+export async function fetchGlobalRanking(top: number = 500): Promise<any[]> {
+  const perPage = 100;
+  let position = 0;
+  let all: any[] = [];
+
+  while (position < top) {
+    const url = `${GLOBAL_RANKING_API_URL_BASE}?limit=${perPage}&position=${position}`;
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+
+    if (!res.ok) {
+      throw new Error(`Error fetching ranking (pos ${position}): HTTP ${res.status}`);
+    }
+
+    const data = await res.json<any>();
+    const payload = data?.payload?.players ?? [];
+    all = all.concat(payload);
+
+    if (payload.length < perPage) {
+      break;
+    }
+    position += perPage;
+  }
+
+  // Trim in case we fetched over
+  return all.slice(0, top);
+}
 
 export async function fetchFaceitUser(nickname: string): Promise<any> {
   const faceitURL = `https://www.faceit.com/api/users/v1/nicknames/${encodeURIComponent(

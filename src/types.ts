@@ -50,4 +50,12 @@ export interface PlayerCrosshair {
   id: string;
   nickname: string;
   crosshair?: string | null;
+}
+
+export interface RankingEntry {
+  position: number;
+  nickname: string;
+  country: string;
+  gameId?: string;
+  faceitElo?: number;
 } 
