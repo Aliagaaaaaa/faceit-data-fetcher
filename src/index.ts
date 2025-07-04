@@ -14,7 +14,7 @@ const app = new Hono<{ Bindings: Env }>();
 // Global CORS
 app.use("*", cors());
 
-// GET /faceit/liveMatches
+// GET /faceit/livematches
 app.get("/faceit/livematches", async (c: Context) => {
   const matches = await getLiveMatches(c.env.DB);
   return c.json(matches);
@@ -62,6 +62,14 @@ app.get("/ws/livematches", async (c: Context) => {
   return stub.fetch(c.req.raw);
 });
 
+// Route: GET /ws/livematches/clients -> returns current client count
+app.get("/ws/livematches/clients", async (c: Context) => {
+  const id = c.env.LIVE_MATCHES_SOCKET.idFromName("global");
+  const stub = c.env.LIVE_MATCHES_SOCKET.get(id);
+  const res = await stub.fetch("https://clients/stats");
+  return res;
+});
+
 // Durable Object to fan-out live match updates via WebSocket
 export class LiveMatchesSocket {
   // Using `any` to avoid requiring explicit Workers types package
@@ -88,6 +96,14 @@ export class LiveMatchesSocket {
       const { matches } = (await request.json()) as { matches: unknown };
       await this.broadcast(JSON.stringify(matches));
       return new Response("ok");
+    }
+
+    // Handle stats request to get current clients
+    if (request.method === "GET" && new URL(request.url).pathname === "/stats") {
+      const count = ((this.state as any).getWebSockets?.() ?? []).length;
+      return new Response(JSON.stringify({ clients: count }), {
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     return new Response("Not found", { status: 404 });
