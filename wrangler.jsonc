@@ -6,12 +6,30 @@
 	"observability": {
 		"enabled": true
 	},
+	"compatibility_flags": ["nodejs_compat"],
+	"triggers": {
+		"crons": ["* * * * *"]
+	},
 	"d1_databases": [
 		{
 		  "binding": "DB",
 		  "database_name": "faceit_data",
 		  "database_id": "16f9fcae-96ec-4ab6-8f01-121e7aa2484a"
 		}
-	  ]
+	  ],
+	"durable_objects": {
+    "bindings": [
+      {
+        "name": "LIVE_MATCHES_SOCKET",
+        "class_name": "LiveMatchesSocket"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": ["LiveMatchesSocket"]
+    }
+  ]
 	
 }
