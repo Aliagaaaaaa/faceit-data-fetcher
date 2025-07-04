@@ -54,8 +54,10 @@ export interface PlayerCrosshair {
 
 export interface RankingEntry {
   position: number;
+  id: string;
   nickname: string;
   country: string;
-  gameId?: string;
-  faceitElo?: number;
+  elo: number;
+  skillLevel: number;
+  globalPosition: number;
 } 

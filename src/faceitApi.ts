@@ -1,8 +1,8 @@
-import { Match, PlayerCrosshair, Player } from "./types";
+import { Match, PlayerCrosshair, Player, RankingEntry } from "./types";
 
 const FACEIT_ENTITY_ID = "73557c8e-4b67-4ac8-bae0-e910b49a5fa0"; // cs2 sa entity id
 const LIVE_MATCH_API_URL = "https://www.faceit.com/api/match/v3/match";
-const MATCH_RESULT_API_URL_BASE= "https://www.faceit.com/api/match/v2/match/";
+const MATCH_RESULT_API_URL_BASE = "https://www.faceit.com/api/match/v2/match/";
 const LIMIT_PER_PAGE = 100; // max limit for faceit api
 const GLOBAL_RANKING_API_URL_BASE ="https://www.faceit.com/api/ranking/v1/globalranking/cs2/SA";
 
@@ -20,10 +20,22 @@ export async function fetchGlobalRanking(top: number = 500): Promise<any[]> {
     }
 
     const data = await res.json<any>();
-    const payload = data?.payload?.players ?? [];
-    all = all.concat(payload);
+    // Official response: payload is an array of ranking entries
+    const entriesRaw: any[] = Array.isArray(data?.payload) ? data.payload : [];
 
-    if (payload.length < perPage) {
+    const entries = entriesRaw.map((e): RankingEntry => ({
+      position: e.position,
+      id: e.user?.id ?? "",
+      nickname: e.user?.nickname ?? "",
+      country: e.user?.country ?? "",
+      elo: e.elo ?? 0,
+      skillLevel: e.skillLevel ?? 0,
+      globalPosition: e.globalPosition ?? e.position,
+    }));
+
+    all = all.concat(entries);
+
+    if (entriesRaw.length < perPage) {
       break;
     }
     position += perPage;
