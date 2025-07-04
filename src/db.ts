@@ -37,11 +37,11 @@ export async function storeRanking(db: D1Database, ranking: any[]): Promise<void
   await db.batch(stmts);
 }
 
-export async function getGlobalRanking(db: D1Database): Promise<any[]> {
+export async function getGlobalRanking(db: D1Database, offset = 0, limit = 100): Promise<any[]> {
   const rows = await db.prepare("SELECT data FROM global_ranking ORDER BY rank").all();
   const aggregated: any[] = [];
   for (const r of rows.results) {
     aggregated.push(...JSON.parse(r.data));
   }
-  return aggregated;
+  return aggregated.slice(offset, offset + limit);
 } 

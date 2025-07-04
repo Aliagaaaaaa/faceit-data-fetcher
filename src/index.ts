@@ -33,8 +33,14 @@ app.get("/faceit/crosshairs/:matchId", async (c: Context) => {
 
 // GET /faceit/ranking
 app.get("/faceit/ranking", async (c: Context) => {
-  const data = await getGlobalRanking(c.env.DB);
-  return c.json(data);
+  const limitParam = c.req.query("limit");
+  const offsetParam = c.req.query("offset");
+  const limit = Math.min(parseInt(limitParam ?? "100", 10), 100); // cap at 100 per page
+  const offset = parseInt(offsetParam ?? "0", 10);
+
+  const data = await getGlobalRanking(c.env.DB, offset, limit);
+
+  return c.json({ offset, limit, results: data });
 });
 
 // GET /faceit/:nickname
